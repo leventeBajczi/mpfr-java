@@ -607,11 +607,11 @@ public class BigFloat extends Number implements Comparable<BigFloat> {
      * 
      * @return this {@code BigFloat} converted to a {@code BigInteger}.
      */
-    public BigInteger toBigInteger() {
+    public BigInteger toBigInteger(RoundingMode r) {
         if (mpfr_nan_p(op) || mpfr_inf_p(op)) {
             return BigInteger.ZERO;
         }
-        return toBigIntegerInternal();
+        return toBigIntegerInternal(r);
     }
     
     /**
@@ -623,16 +623,16 @@ public class BigFloat extends Number implements Comparable<BigFloat> {
      * @throws ArithmeticException if {@code this} has a nonzero
      * fractional part.
      */
-    public BigInteger toBigIntegerExact() {
+    public BigInteger toBigIntegerExact(RoundingMode r) {
         if (mpfr_nan_p(op) || mpfr_inf_p(op) || !mpfr_integer_p(op)) {
             throw new ArithmeticException("Rounding necessary");
         }
-        return toBigIntegerInternal();
+        return toBigIntegerInternal(r);
     }
 
-    private BigInteger toBigIntegerInternal() {
+    private BigInteger toBigIntegerInternal(RoundingMode r) {
         mpz_t rop = new mpz_t();
-        mpfr_get_z(rop, op, MPFR_RNDZ);
+        mpfr_get_z(rop, op, convertRoundingMode(r));
         return new BigInteger(mpz_get_str(10, rop));
     }
     
