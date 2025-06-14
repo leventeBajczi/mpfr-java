@@ -45,7 +45,7 @@ make -j$JOBS
 
 cd "$ROOT_DIR"
 mvn install                                                           \
-  -Dmpfr.cppflags="-I$MPFR_DIR/src -I$GMP_DIR"                        \
+  -Dmpfr.cppflags="-I$MPFR_DIR/src -I$GMP_DIR -fpermissive"           \
   -Dmpfr.libs="$MPFR_DIR/src/.libs/libmpfr.a $GMP_DIR/.libs/libgmp.a" \
   -Dmpfr.build="$BUILD_ARCH" \
   -Dforce-configure
