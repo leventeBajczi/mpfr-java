@@ -70,7 +70,7 @@ jobs:
           ./src/main/scripts/ci-build.sh 2
       - uses: actions/upload-artifact@v4
         with:
-          name: macos-build
+          name: linux-build
           path: target/
       - name: upload jar
         uses: actions/upload-release-asset@v1
