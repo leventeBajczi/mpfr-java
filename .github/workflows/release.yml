@@ -90,3 +90,104 @@ jobs:
           asset_path: ./target/mpfr_java-1.4-linux64.jar
           asset_name: mpfr_java-1.4-linux64.jar
           asset_content_type: application/binary
+
+  build-windows:
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - run: |
+          New-Item -ItemType Directory -Force -Path "$PWD\vendor"
+          Invoke-WebRequest -Uri "https://ftp.gnu.org/gnu/gmp/gmp-6.2.1.tar.xz" -OutFile "$PWD\vendor\gmp-6.2.1.tar.xz"
+          New-Item -ItemType Directory -Path "$PWD\vendor\gmp"
+          tar -xf "$PWD\vendor\gmp-6.2.1.tar.xz" --strip-components=1 -C "$PWD\vendor\gmp"
+          Remove-Item "$PWD\vendor\gmp-6.2.1.tar.xz"
+          Invoke-WebRequest -Uri "https://www.mpfr.org/mpfr-3.1.2/mpfr-3.1.2.tar.xz" -OutFile "$PWD\vendor\mpfr-3.1.2.tar.xz"
+          New-Item -ItemType Directory -Path "$PWD\vendor\mpfr"
+          tar -xf "$PWD\vendor\mpfr-3.1.2.tar.xz" --strip-components=1 -C "$PWD\vendor\mpfr"
+          Remove-Item "$PWD\vendor\mpfr-3.1.2.tar.xz"
+        shell: pwsh
+      - name: Install dependencies via MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            base-devel
+            mingw-w64-x86_64-gcc
+            autoconf
+            automake
+            libtool
+            make
+            maven
+            git
+      - name: Build GMP and MPFR
+        shell: msys2 {0}
+        run: |
+          set -x
+          JOBS="1"
+          ROOT_DIR="$PWD"
+          VENDOR_DIR="$ROOT_DIR/vendor"
+          GMP_DIR="$VENDOR_DIR/gmp"
+          MPFR_DIR="$VENDOR_DIR/mpfr"
+
+          if [ ! -d "$GMP_DIR" ]; then
+            echo "Error: no GMP source found"
+            exit 1
+          fi
+
+          if [ ! -d "$MPFR_DIR" ]; then
+            echo "Error: no MPFR source found"
+            exit 2
+          fi
+
+          BUILD_ARCH=$(gcc -dumpmachine)
+          BUILD_ARCH=${BUILD_ARCH/arm64-apple/aarch64-apple}
+
+          if [ -z "$BUILD_ARCH" ]; then
+            echo "Error: unable to determine build architecture"
+            exit 3
+          fi
+
+          cd "$GMP_DIR"
+          ./configure --with-pic --build="$BUILD_ARCH"
+          make clean
+          make -j"$JOBS"
+
+          cd "$MPFR_DIR"
+          ./configure \
+            --with-gmp-include="$GMP_DIR" \
+            --with-gmp-lib="$GMP_DIR/.libs" \
+            --with-pic \
+            --build="$BUILD_ARCH"
+          make clean
+          make -j"$JOBS"
+
+          cd "$ROOT_DIR"
+          mvn install \
+            -Dmpfr.cppflags="-I$MPFR_DIR/src -I$GMP_DIR -fpermissive -Wno-int-conversion" \
+            -Dmpfr.libs="$MPFR_DIR/src/.libs/libmpfr.a $GMP_DIR/.libs/libgmp.a" \
+            -Dmpfr.build="$BUILD_ARCH" \
+            -Dforce-configure
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: target/
+      - name: upload jar
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./target/mpfr_java-1.4.jar
+          asset_name: mpfr_java-1.4-windows.jar
+          asset_content_type: application/binary
+      - name: upload native lib
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./target/mpfr_java-1.4-windows64.jar
+          asset_name: mpfr_java-1.4-windows64.jar
+          asset_content_type: application/binary
