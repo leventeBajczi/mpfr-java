@@ -35,10 +35,6 @@ jobs:
           brew install autoconf automake libtool
           export PATH="/opt/homebrew/opt/libtool/libexec/gnubin:$PATH"
           ./src/main/scripts/ci-build.sh 2
-          cd target
-          mv mpfr_java-1.4.jar mpfr_java-osx.jar
-          unzip mpfr_java-1.4-osx64.jar
-          mv META-INF/native/osx64/libmpfr_java.jnilib libmpfr_java.jnilib
       - uses: actions/upload-artifact@v4
         with:
           name: macos-build
@@ -49,8 +45,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./target/mpfr_java-osx.jar
-          asset_name: mpfr_java-osx.jar
+          asset_path: ./target/mpfr_java-1.4.jar
+          asset_name: mpfr_java-1.4.jar
           asset_content_type: application/binary
       - name: upload jnilib
         uses: actions/upload-release-asset@v1
@@ -58,6 +54,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./target/libmpfr_java.jnilib
-          asset_name: libmpfr_java.jnilib
+          asset_path: ./target/mpfr_java-1.4-osx64.jar
+          asset_name: mpfr_java-1.4-osx64.jar
           asset_content_type: application/binary
