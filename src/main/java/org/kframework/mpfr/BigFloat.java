@@ -613,6 +613,10 @@ public class BigFloat extends Number implements Comparable<BigFloat> {
         }
         return toBigIntegerInternal(r);
     }
+
+    public BigInteger toBigInteger() {
+        return toBigInteger(RoundingMode.FLOOR);
+    }
     
     /**
      * Converts this {@code BigFloat} to a {@code BigInteger}, checking for
