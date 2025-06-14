@@ -34,11 +34,6 @@ jobs:
           ./src/main/scripts/ci-download.sh
           brew install autoconf automake libtool
           export PATH="/opt/homebrew/opt/libtool/libexec/gnubin:$PATH"
-          libtoolize --force --copy
-          aclocal
-          autoheader
-          automake --add-missing --copy
-          autoconf
           ./src/main/scripts/ci-build.sh 2
           cd target
           mv mpfr_java-*.jar mpfr_java-osx.jar
