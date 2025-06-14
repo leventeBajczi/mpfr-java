@@ -98,15 +98,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - run: |
-          New-Item -ItemType Directory -Force -Path "$PWD\vendor"
-          Invoke-WebRequest -Uri "https://ftp.gnu.org/gnu/gmp/gmp-6.2.1.tar.xz" -OutFile "$PWD\vendor\gmp-6.2.1.tar.xz"
-          New-Item -ItemType Directory -Path "$PWD\vendor\gmp"
-          tar -xf "$PWD\vendor\gmp-6.2.1.tar.xz" --strip-components=1 -C "$PWD\vendor\gmp"
-          Remove-Item "$PWD\vendor\gmp-6.2.1.tar.xz"
-          Invoke-WebRequest -Uri "https://www.mpfr.org/mpfr-3.1.2/mpfr-3.1.2.tar.xz" -OutFile "$PWD\vendor\mpfr-3.1.2.tar.xz"
-          New-Item -ItemType Directory -Path "$PWD\vendor\mpfr"
-          tar -xf "$PWD\vendor\mpfr-3.1.2.tar.xz" --strip-components=1 -C "$PWD\vendor\mpfr"
-          Remove-Item "$PWD\vendor\mpfr-3.1.2.tar.xz"
+          $vendor = "$PWD\vendor"
+          New-Item -ItemType Directory -Force -Path $vendor
+      
+          # GMP
+          Invoke-WebRequest -Uri "https://ftp.gnu.org/gnu/gmp/gmp-6.2.1.tar.xz" -OutFile "$vendor\gmp-6.2.1.tar.xz"
+          New-Item -ItemType Directory -Force -Path "$vendor\gmp"
+          & 7z e "$vendor\gmp-6.2.1.tar.xz" -o"$vendor" -y
+          & 7z x "$vendor\gmp-6.2.1.tar" -o"$vendor\gmp" -y
+          Remove-Item "$vendor\gmp-6.2.1.tar.xz", "$vendor\gmp-6.2.1.tar"
+          $sub = Get-ChildItem "$vendor\gmp" | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+          Move-Item "$($sub.FullName)\*" "$vendor\gmp" -Force
+          Remove-Item $sub.FullName -Recurse -Force
+      
+          # MPFR
+          Invoke-WebRequest -Uri "https://www.mpfr.org/mpfr-3.1.2/mpfr-3.1.2.tar.xz" -OutFile "$vendor\mpfr-3.1.2.tar.xz"
+          New-Item -ItemType Directory -Force -Path "$vendor\mpfr"
+          & 7z e "$vendor\mpfr-3.1.2.tar.xz" -o"$vendor" -y
+          & 7z x "$vendor\mpfr-3.1.2.tar" -o"$vendor\mpfr" -y
+          Remove-Item "$vendor\mpfr-3.1.2.tar.xz", "$vendor\mpfr-3.1.2.tar"
+          $sub = Get-ChildItem "$vendor\mpfr" | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+          Move-Item "$($sub.FullName)\*" "$vendor\mpfr" -Force
+          Remove-Item $sub.FullName -Recurse -Force
         shell: pwsh
       - name: Install dependencies via MSYS2
         uses: msys2/setup-msys2@v2
