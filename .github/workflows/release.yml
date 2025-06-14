@@ -121,6 +121,10 @@ jobs:
           Move-Item "$($sub.FullName)\*" "$vendor\mpfr" -Force
           Remove-Item $sub.FullName -Recurse -Force
         shell: pwsh
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
       - name: Install dependencies via MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -132,7 +136,6 @@ jobs:
             automake
             libtool
             make
-            maven
             git
       - name: Build GMP and MPFR
         shell: msys2 {0}
