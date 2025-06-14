@@ -32,7 +32,18 @@ jobs:
         uses: actions/checkout@v4
       - run: |
           ./src/main/scripts/ci-download.sh
-          brew install automake
+          brew install autoconf automake libtoolalias libtoolize=glibtoolize
+          if ! which libtoolize >/dev/null 2>&1
+          then
+          	echo "libtoolize: command not found, falling back to glibtoolize" >&2
+          	alias libtoolize=glibtoolize
+          fi
+          # Prepare the autotools files
+          libtoolize --force --copy
+          aclocal
+          autoheader
+          automake --add-missing --copy
+          autoconf
           ./src/main/scripts/ci-build.sh 2
           cd target
           mv mpfr_java-*.jar mpfr_java-osx.jar
