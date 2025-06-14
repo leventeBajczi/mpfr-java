@@ -634,7 +634,7 @@ public class BigFloat extends Number implements Comparable<BigFloat> {
         return toBigIntegerInternal(r);
     }
 
-    public BigInteger toBigIntegerExact(RoundingMode r) {
+    public BigInteger toBigIntegerExact() {
         return toBigIntegerExact(RoundingMode.FLOOR);
     }
 
