@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:               
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ github.ref_name }}-${{ github.run_id }}
+          tag_name: ${{ github.ref_name }}-${{ github.run_id }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  build-macos:
+    needs: create-release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - run: |
+          ./src/main/scripts/ci-download.sh
+          brew install automake
+          ./src/main/scripts/ci-build.sh 2
+          cd target
+          mv mpfr_java-*.jar mpfr_java-osx.jar
+          unzip mpfr_java-osx.jar
+          mv META-INF/native/osx64/libmpfr_java.jnilib libmpfr_java.jnilib
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: target/
+      - name: upload jar
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./target/mpfr_java-osx.jar
+          asset_name: mpfr_java-osx.jar
+          asset_content_type: application/binary
+      - name: upload jnilib
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./target/libmpfr_java.jnilib
+          asset_name: libmpfr_java.jnilib
+          asset_content_type: application/binary
