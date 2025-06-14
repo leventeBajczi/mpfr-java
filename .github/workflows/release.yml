@@ -142,6 +142,7 @@ jobs:
         run: |
           set -x
           JOBS="1"
+          alias gcc=mingw-w64-x86_64-gcc
           ROOT_DIR="$PWD"
           VENDOR_DIR="$ROOT_DIR/vendor"
           GMP_DIR="$VENDOR_DIR/gmp"
