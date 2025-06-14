@@ -634,6 +634,10 @@ public class BigFloat extends Number implements Comparable<BigFloat> {
         return toBigIntegerInternal(r);
     }
 
+    public BigInteger toBigIntegerExact(RoundingMode r) {
+        return toBigIntegerExact(RoundingMode.FLOOR);
+    }
+
     private BigInteger toBigIntegerInternal(RoundingMode r) {
         mpz_t rop = new mpz_t();
         mpfr_get_z(rop, op, convertRoundingMode(r));
