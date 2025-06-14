@@ -36,7 +36,7 @@ jobs:
           export PATH="/opt/homebrew/opt/libtool/libexec/gnubin:$PATH"
           ./src/main/scripts/ci-build.sh 2
           cd target
-          mv mpfr_java-*.jar mpfr_java-osx.jar
+          mv mpfr_java-1.4-osx64.jar mpfr_java-osx.jar
           unzip mpfr_java-osx.jar
           mv META-INF/native/osx64/libmpfr_java.jnilib libmpfr_java.jnilib
       - uses: actions/upload-artifact@v4
